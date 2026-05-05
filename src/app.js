@@ -5,7 +5,7 @@ import { initAuthUI } from './features/auth/auth.ui.js';
 import { showView } from './utils/ui.js';
 import * as api from './services/api.js';
 import { connectWS } from './services/websocket.js';
-import { loadConversations, initSearch, resetConversationView, updatePresenceDot } from './features/chat/conversations.js';
+import { loadConversations, initSearch, resetConversationView, syncLoggedInUserProfile, updatePresenceDot } from './features/chat/conversations.js';
 import { bindBackButton, bindChatInput, bindLoadMore } from './features/chat/chat.ui.js';
 import { loadMessages, receiveMessage, resetMessageState, sendMessage } from './features/chat/chat.js';
 import { bindLogoutModal } from './features/auth/logout-modal.js';
@@ -16,6 +16,7 @@ let appEventsBound = false;
 async function onLoginSuccess() {
   showView('app');
   resetConversationView();
+  syncLoggedInUserProfile(store.user);
   await loadConversations();
   startWebSocket();
   bindAppEvents();

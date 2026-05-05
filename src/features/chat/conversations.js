@@ -20,6 +20,8 @@ export function resetConversationView() {
   const loadMoreWrap = document.getElementById('load-more-wrap');
   const searchInput = document.getElementById('search-input');
   const searchResults = document.getElementById('search-results');
+  const meName = document.getElementById('me-name');
+  const meAvatar = document.getElementById('me-avatar');
 
   if (conversationsList) {
     conversationsList.innerHTML = '<p class="list-empty">No conversations yet.<br/>Search for a user above.</p>';
@@ -32,8 +34,24 @@ export function resetConversationView() {
   if (loadMoreWrap) loadMoreWrap.classList.add('hidden');
   if (searchInput) searchInput.value = '';
   if (searchResults) searchResults.classList.add('hidden');
+  if (meName) meName.textContent = '';
+  if (meAvatar) meAvatar.textContent = '';
 
   store.activeConversation = null;
+}
+
+export function syncLoggedInUserProfile(user) {
+  const chip = document.getElementById('me-chip');
+  const avatarHost = document.getElementById('me-avatar');
+  const nameHost = document.getElementById('me-name');
+
+  if (!chip || !avatarHost || !nameHost || !user) return;
+
+  avatarHost.replaceWith(avatarEl(user.display_name || user.username, true));
+  const newAvatar = chip.querySelector('.avatar');
+  if (newAvatar) newAvatar.id = 'me-avatar';
+
+  nameHost.textContent = user.display_name || user.username;
 }
 
 function renderConversationList(conversations) {

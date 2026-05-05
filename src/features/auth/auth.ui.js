@@ -3,6 +3,18 @@ import { showError, hideError } from '../../utils/ui.js';
 
 let isRegisterMode = false;
 
+function isUniqueRegisterPassword(username, displayName, password) {
+  const normalizedPassword = password.trim().toLowerCase();
+  const normalizedUsername = username.trim().toLowerCase();
+  const normalizedDisplayName = displayName.trim().toLowerCase();
+
+  return (
+    normalizedPassword.length >= 8 &&
+    normalizedPassword !== normalizedUsername &&
+    normalizedPassword !== normalizedDisplayName
+  );
+}
+
 export function initAuthUI(onSuccess) {
   const form = document.getElementById('auth-form');
   const toggleLink = document.getElementById('toggle-link');
@@ -26,6 +38,7 @@ export function initAuthUI(onSuccess) {
 
     const username = document.getElementById('input-username').value.trim();
     const password = document.getElementById('input-password').value;
+    const displayName = document.getElementById('input-display').value.trim();
 
     if (!username || !password) {
       showError('auth-error', 'Please fill in all fields.');
@@ -37,11 +50,16 @@ export function initAuthUI(onSuccess) {
       return;
     }
 
+    if (isRegisterMode && !isUniqueRegisterPassword(username, displayName || username, password)) {
+      showError('auth-error', 'Choose a password that does not match your username or display name.');
+      return;
+    }
+
     submitBtn.disabled = true;
 
     try {
       if (isRegisterMode) {
-        await registerAccount(username, password, document.getElementById('input-display').value.trim());
+        await registerAccount(username, password, displayName);
       } else {
         await loginAccount(username, password);
       }
