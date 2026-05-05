@@ -63,6 +63,27 @@ export async function logout() {
   });
 }
 
+export async function authMe() {
+  const res = await request('/auth/me');
+  if (!res.ok) throw new Error('Failed to restore session');
+  return res.json();
+}
+
+export async function refreshAccessToken() {
+  const res = await fetch(`${BASE_URL}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: store.refreshToken }),
+  });
+
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  store.accessToken = data.access_token;
+  store.tokenExpiresAt = Date.now() + ((data.expires_in || 900) * 1000);
+  return data;
+}
+
 export async function searchUsers(q) {
   const res = await request(`/users/search?q=${encodeURIComponent(q)}`);
   if (!res.ok) return [];
