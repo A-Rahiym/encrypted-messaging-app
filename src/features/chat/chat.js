@@ -3,6 +3,7 @@ import * as api from '../../services/api.js';
 import * as crypto from '../../core/crypto.js';
 import { sendWS } from '../../services/websocket.js';
 import { buildMessageRow, isAtBottom, scrollToBottom } from './chat.ui.js';
+import { showToast } from '../../utils/ui.js';
 
 let oldestMsgTimestamp = null;
 const seenMessageIds = new Set();
@@ -104,7 +105,7 @@ export async function sendMessage(text) {
     input.value = '';
     input.style.height = 'auto';
   } catch (err) {
-    alert('Failed to send message: ' + err.message);
+    showToast('Failed to send message: ' + err.message);
   } finally {
     sendBtn.disabled = false;
     input.disabled = false;

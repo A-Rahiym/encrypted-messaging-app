@@ -24,3 +24,23 @@ export function showError(id, msg) {
 export function hideError(id) {
   document.getElementById(id).classList.add('hidden');
 }
+
+let toastTimer = null;
+
+export function showToast(msg, duration = 3000) {
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+    toastTimer = null;
+  }
+
+  toast.textContent = msg;
+  toast.classList.remove('hidden');
+
+  toastTimer = window.setTimeout(() => {
+    toast.classList.add('hidden');
+    toastTimer = null;
+  }, duration);
+}

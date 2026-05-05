@@ -1,6 +1,7 @@
 import { store } from '../../core/store.js';
 import * as crypto from '../../core/crypto.js';
 import { formatTime } from '../../utils/format.js';
+import { showToast } from '../../utils/ui.js';
 
 export async function buildMessageRow(msg, isSelf) {
   const row = document.createElement('div');
@@ -21,6 +22,7 @@ export async function buildMessageRow(msg, isSelf) {
   } catch {
     bubble.classList.add('failed');
     bubble.textContent = 'Message could not be decrypted';
+    showToast('Some messages could not be decrypted.');
   }
 
   row.appendChild(bubble);
