@@ -68,6 +68,29 @@ export async function deriveWrappingKey(password, saltB64) {
       hash: 'SHA-256',
     },
     keyMaterial,
+    { name: 'AES-KW', length: 256 },
+    false,
+    ['wrapKey', 'unwrapKey']
+  );
+}
+
+export async function deriveLegacyWrappingKey(password, saltB64) {
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(password),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: b64ToBuf(saltB64),
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    keyMaterial,
     { name: 'AES-GCM', length: 256 },
     false,
     ['encrypt', 'decrypt']
@@ -75,26 +98,85 @@ export async function deriveWrappingKey(password, saltB64) {
 }
 
 export async function wrapPrivateKey(privateKey, wrappingKey) {
+  const dataKey = await crypto.subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt']
+  );
+
+  const wrappedDataKey = await crypto.subtle.wrapKey(
+    'raw',
+    dataKey,
+    wrappingKey,
+    { name: 'AES-KW' }
+  );
+
+  const privateKeyBytes = await crypto.subtle.exportKey('pkcs8', privateKey);
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const exported = await crypto.subtle.exportKey('pkcs8', privateKey);
   const ciphertext = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
-    wrappingKey,
-    exported
+    dataKey,
+    privateKeyBytes
   );
 
   return JSON.stringify({
-    ciphertext: bufToB64(ciphertext),
+    version: 2,
+    wrappedDataKey: bufToB64(wrappedDataKey),
     iv: bufToB64(iv.buffer),
+    ciphertext: bufToB64(ciphertext),
   });
 }
 
-export async function unwrapPrivateKey(wrappedJson, wrappingKey) {
-  const { ciphertext, iv } = JSON.parse(wrappedJson);
+export async function unwrapPrivateKey(wrappedJson, wrappingKey, legacyWrappingKey = null) {
+  const parsed = JSON.parse(wrappedJson);
+
+  if (parsed.version === 2 || parsed.wrappedDataKey) {
+    const wrappedDataKey = parsed.wrappedDataKey || parsed.wrappedKey;
+    const dataKey = await crypto.subtle.unwrapKey(
+      'raw',
+      b64ToBuf(wrappedDataKey),
+      wrappingKey,
+      { name: 'AES-KW' },
+      { name: 'AES-GCM', length: 256 },
+      true,
+      ['decrypt']
+    );
+
+    const plaintext = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: b64ToBuf(parsed.iv) },
+      dataKey,
+      b64ToBuf(parsed.ciphertext)
+    );
+
+    return crypto.subtle.importKey(
+      'pkcs8',
+      plaintext,
+      { name: 'RSA-OAEP', hash: 'SHA-256' },
+      false,
+      ['decrypt']
+    );
+  }
+
+  if (parsed.wrappedKey) {
+    return crypto.subtle.unwrapKey(
+      'pkcs8',
+      b64ToBuf(parsed.wrappedKey),
+      wrappingKey,
+      { name: 'AES-KW' },
+      { name: 'RSA-OAEP', hash: 'SHA-256' },
+      false,
+      ['decrypt']
+    );
+  }
+
+  if (!legacyWrappingKey) {
+    throw new Error('Legacy wrapped private key requires a legacy wrapping key');
+  }
+
   const plaintext = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: b64ToBuf(iv) },
-    wrappingKey,
-    b64ToBuf(ciphertext)
+    { name: 'AES-GCM', iv: b64ToBuf(parsed.iv) },
+    legacyWrappingKey,
+    b64ToBuf(parsed.ciphertext)
   );
 
   return crypto.subtle.importKey(

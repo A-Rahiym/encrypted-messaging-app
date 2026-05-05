@@ -8,6 +8,7 @@ export const store = {
   onlineUsers: new Set(),
   ws: null,
   activeConversation: null,
+  tokenExpiresAt: null,
 
   clear() {
     this.accessToken = null;
@@ -19,5 +20,6 @@ export const store = {
     this.onlineUsers = new Set();
     this.ws = null;
     this.activeConversation = null;
+    this.tokenExpiresAt = null;
   },
 };
