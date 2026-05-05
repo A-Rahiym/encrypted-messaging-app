@@ -236,6 +236,18 @@ export async function sendMessage(text) {
     const recipientPublicKey = await crypto.importPublicKey(recipientPubKeyB64);
 
     const payload = await crypto.encryptMessage(text.trim(), recipientPublicKey, store.ownPublicKey);
+    const tempMsg = {
+      id: 'temp-' + Date.now(),
+      payload,
+      from_user_id: store.user.id,
+      to_user_id: recipientId,
+      created_at: new Date().toISOString()
+    };
+
+    const container = document.getElementById('messages-list');
+    const row = await buildMessageRow(tempMsg, true);
+    container.appendChild(row);
+    scrollToBottom();
 
     const { sendWS, sendMessageHTTP } = await import('./api.js');
     const sent = sendWS(recipientId, payload);
@@ -285,7 +297,6 @@ export function initSearch() {
       dropdown.classList.remove('hidden');
     }, 300);
   });
-
   document.addEventListener('click', (e) => {
     if (!input.contains(e.target) && !dropdown.contains(e.target)) {
       dropdown.classList.add('hidden');
@@ -304,6 +315,7 @@ function isAtBottom() {
   const c = document.getElementById('messages-container');
   return c.scrollHeight - c.scrollTop - c.clientHeight < 60;
 }
+
 
 
 export function initLoadMore() {
