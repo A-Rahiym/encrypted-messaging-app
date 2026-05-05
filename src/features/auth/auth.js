@@ -5,7 +5,7 @@ import { showLoading, hideLoading } from '../../utils/ui.js';
 
 export async function registerAccount(username, password, displayName) {
   const resolvedDisplayName = displayName || username;
-  showLoading('Generating your encryption keys…');
+  showLoading('Setting up your account…');
 
   const keypair = await crypto.generateKeyPair();
   const salt = crypto.generateSalt();
@@ -38,7 +38,7 @@ export async function registerAccount(username, password, displayName) {
 }
 
 export async function loginAccount(username, password) {
-  showLoading('Restoring your secure session…');
+  showLoading('Welcome back! Logging you in…');
 
   let data;
   try {
@@ -51,7 +51,7 @@ export async function loginAccount(username, password) {
   store.refreshToken = data.refresh_token;
   store.tokenExpiresAt = Date.now() + ((data.expires_in || 900) * 1000);
 
-  showLoading('Restoring your secure session…');
+  showLoading('Welcome back! Logging you in…');
   try {
     const profile = await api.authMe().catch(() => data.user);
     store.user = profile;
