@@ -1,7 +1,7 @@
-import { WS_RECONNECT_DELAY_MS, WS_URL } from '../core/constants.js';
+import { WS_URL } from '../core/constants.js';
 import { store } from '../core/store.js';
 
-export function connectWS(onMessage, onPresence) {
+export function connectWS(onMessage, onPresence, onClose) {
   if (store.ws && store.ws.readyState < 2) store.ws.close();
 
   const ws = new WebSocket(`${WS_URL}/ws?token=${store.accessToken}`);
@@ -12,15 +12,14 @@ export function connectWS(onMessage, onPresence) {
       const frame = JSON.parse(e.data);
       if (frame.event === 'message.receive') onMessage(frame);
       if (frame.event === 'user.online' || frame.event === 'user.offline') onPresence(frame);
+      if (frame.event === 'error') console.error('WebSocket error frame:', frame.detail || frame);
     } catch {
       /* ignore malformed */
     }
   };
 
   ws.onclose = (e) => {
-    if (e.code !== 1000) {
-      setTimeout(() => connectWS(onMessage, onPresence), WS_RECONNECT_DELAY_MS);
-    }
+    if (typeof onClose === 'function') onClose(e);
   };
 
   ws.onerror = () => ws.close();
