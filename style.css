@@ -78,11 +78,27 @@ body {
 
 .auth-logo {
   width: 52px; height: 52px;
-  background: var(--primary);
-  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(59,91,219,0.12), rgba(59,91,219,0.05));
+  border: 1px solid rgba(59,91,219,0.14);
+  border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
-  color: #fff;
   margin-bottom: 16px;
+}
+
+.app-mark {
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.app-mark-lg {
+  width: 28px;
+  height: 28px;
+}
+
+.app-mark-sm {
+  width: 20px;
+  height: 20px;
 }
 
 .auth-card h1 {
@@ -160,6 +176,10 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
 .brand {
   display: flex; align-items: center; gap: 8px;
   color: #fff; font-size: 15px; font-weight: 600;
+}
+
+.brand .app-mark {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
 }
 
 .icon-btn {
@@ -369,6 +389,96 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 #send-btn:hover { background: var(--primary-hover); }
 #send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 15, 28, 0.58);
+}
+
+.modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  background: #ffffff;
+  border: 1px solid rgba(228, 231, 240, 0.95);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 30px 70px rgba(10, 15, 28, 0.28);
+}
+
+.modal-hero {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(59,91,219,0.10), rgba(59,91,219,0.04));
+  border: 1px solid rgba(59,91,219,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.modal-card h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.modal-card p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.ghost-btn,
+.danger-btn {
+  flex: 1;
+  height: 42px;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghost-btn {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.ghost-btn:hover {
+  background: #eef2ff;
+}
+
+.danger-btn {
+  background: #dc2626;
+  color: #fff;
+}
+
+.danger-btn:hover {
+  background: #b91c1c;
+}
 
 
 @media (max-width: 640px) {
