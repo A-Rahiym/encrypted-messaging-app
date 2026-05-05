@@ -32,6 +32,7 @@ export async function registerAccount(username, password, displayName) {
   store.user = data.user;
   store.privateKey = keypair.privateKey;
   store.ownPublicKey = keypair.publicKey;
+  store.tokenExpiresAt = Date.now() + ((data.expires_in || 900) * 1000);
 
   return data;
 }
@@ -48,16 +49,18 @@ export async function loginAccount(username, password) {
 
   store.accessToken = data.access_token;
   store.refreshToken = data.refresh_token;
-  store.user = data.user;
+  store.tokenExpiresAt = Date.now() + ((data.expires_in || 900) * 1000);
 
   showLoading('Restoring your secure session…');
   try {
-    const wrappingKey = await crypto.deriveWrappingKey(password, data.user.pbkdf2_salt);
-    store.privateKey = await crypto.unwrapPrivateKey(data.user.wrapped_private_key, wrappingKey);
-    store.ownPublicKey = await crypto.importPublicKey(data.user.public_key);
+    const profile = await api.authMe().catch(() => data.user);
+    store.user = profile;
+    const wrappingKey = await crypto.deriveWrappingKey(password, profile.pbkdf2_salt);
+    const legacyWrappingKey = await crypto.deriveLegacyWrappingKey(password, profile.pbkdf2_salt);
+    store.privateKey = await crypto.unwrapPrivateKey(profile.wrapped_private_key, wrappingKey, legacyWrappingKey);
+    store.ownPublicKey = await crypto.importPublicKey(profile.public_key);
   } finally {
     hideLoading();
   }
-
   return data;
 }
