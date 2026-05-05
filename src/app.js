@@ -5,15 +5,17 @@ import { initAuthUI } from './features/auth/auth.ui.js';
 import { showView } from './utils/ui.js';
 import * as api from './services/api.js';
 import { connectWS } from './services/websocket.js';
-import { loadConversations, initSearch, updatePresenceDot } from './features/chat/conversations.js';
+import { loadConversations, initSearch, resetConversationView, updatePresenceDot } from './features/chat/conversations.js';
 import { bindBackButton, bindChatInput, bindLoadMore } from './features/chat/chat.ui.js';
 import { loadMessages, receiveMessage, resetMessageState, sendMessage } from './features/chat/chat.js';
+import { bindLogoutModal } from './features/auth/logout-modal.js';
 
-console.log('App initialized');
+
 let appEventsBound = false;
 
 async function onLoginSuccess() {
   showView('app');
+  resetConversationView();
   await loadConversations();
   startWebSocket();
   bindAppEvents();
@@ -37,12 +39,13 @@ function startWebSocket() {
 function bindAppEvents() {
   if (appEventsBound) return;
   appEventsBound = true;
-  document.getElementById('logout-btn').addEventListener('click', async () => {
-    if (!confirm('Log out?')) return;
+
+  bindLogoutModal(async () => {
     try { await api.logout(); } catch { /* ignore */ }
     if (store.ws) store.ws.close(1000);
     store.clear();
-    resetMessageState()
+    resetMessageState();
+    resetConversationView();
     showView('auth');
     document.getElementById('input-username').value = '';
     document.getElementById('input-password').value = '';

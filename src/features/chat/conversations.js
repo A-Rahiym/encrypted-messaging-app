@@ -10,6 +10,32 @@ export async function loadConversations() {
   renderConversationList(list);
 }
 
+export function resetConversationView() {
+  const conversationsList = document.getElementById('conversations-list');
+  const chatEmpty = document.getElementById('chat-empty');
+  const chatActive = document.getElementById('chat-active');
+  const chatPanel = document.getElementById('chat-panel');
+  const sidebar = document.getElementById('sidebar');
+  const messagesList = document.getElementById('messages-list');
+  const loadMoreWrap = document.getElementById('load-more-wrap');
+  const searchInput = document.getElementById('search-input');
+  const searchResults = document.getElementById('search-results');
+
+  if (conversationsList) {
+    conversationsList.innerHTML = '<p class="list-empty">No conversations yet.<br/>Search for a user above.</p>';
+  }
+  if (chatEmpty) chatEmpty.classList.remove('hidden');
+  if (chatActive) chatActive.classList.add('hidden');
+  if (chatPanel) chatPanel.classList.remove('hidden-mobile');
+  if (sidebar) sidebar.classList.remove('hidden-mobile-sidebar');
+  if (messagesList) messagesList.innerHTML = '';
+  if (loadMoreWrap) loadMoreWrap.classList.add('hidden');
+  if (searchInput) searchInput.value = '';
+  if (searchResults) searchResults.classList.add('hidden');
+
+  store.activeConversation = null;
+}
+
 function renderConversationList(conversations) {
   const container = document.getElementById('conversations-list');
   if (!conversations.length) {
@@ -109,6 +135,8 @@ export async function openConversation(conv) {
   await loadMessages(conv.user_id, false);
   document.getElementById('msg-input').focus();
 }
+
+
 
 export function initSearch() {
   const input = document.getElementById('search-input');
