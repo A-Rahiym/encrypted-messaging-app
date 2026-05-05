@@ -727,7 +727,7 @@ button[type="submit"]:disabled {
 
 #chat-input-area {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 10px;
   padding: 12px 16px;
   background: rgba(25, 29, 37, 0.96);
@@ -737,6 +737,9 @@ button[type="submit"]:disabled {
 
 #msg-input {
   flex: 1;
+  min-height: 56px;
+  height: auto;
+  resize: none;
   resize: none;
   padding: 10px 12px;
   border: 1px solid var(--border);
@@ -756,8 +759,8 @@ button[type="submit"]:disabled {
 }
 
 #send-btn {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   background: var(--primary);
   border: none;
