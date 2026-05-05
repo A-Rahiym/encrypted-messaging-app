@@ -1,37 +1,42 @@
 // app.js — entry point, wires everything together
 
-import { store } from './store.js';
-import { initAuth } from './auth.js';
-import { showView } from './ui.js';
-import * as api from './api.js';
-import * as chat from './chat.js';
+import { store } from './core/store.js';
+import { initAuthUI } from './features/auth/auth.ui.js';
+import { showView } from './utils/ui.js';
+import * as api from './services/api.js';
+import { connectWS } from './services/websocket.js';
+import { loadConversations, initSearch, updatePresenceDot } from './features/chat/conversations.js';
+import { bindBackButton, bindChatInput, bindLoadMore } from './features/chat/chat.ui.js';
+import { loadMessages, receiveMessage, sendMessage } from './features/chat/chat.js';
 
 console.log('App initialized');
+let appEventsBound = false;
+
 async function onLoginSuccess() {
   showView('app');
-  await chat.loadConversations();
+  await loadConversations();
   startWebSocket();
-  chat.initSearch();
-  chat.initLoadMore();
-  chat.initBackButton();
   bindAppEvents();
+  initSearch();
 }
 
 function startWebSocket() {
-  api.connectWS(
+  connectWS(
     async (frame) => {
-      await chat.receiveMessage(frame);
+      await receiveMessage(frame);
+      await loadConversations();
     },
     (frame) => {
       if (frame.event === 'user.online') store.onlineUsers.add(frame.user_id);
       if (frame.event === 'user.offline') store.onlineUsers.delete(frame.user_id);
-      chat.updatePresenceDot(frame.user_id, frame.event === 'user.online');
+      updatePresenceDot(frame.user_id, frame.event === 'user.online');
     }
   );
 }
 
 function bindAppEvents() {
-  // Logout
+  if (appEventsBound) return;
+  appEventsBound = true;
   document.getElementById('logout-btn').addEventListener('click', async () => {
     if (!confirm('Log out?')) return;
     try { await api.logout(); } catch { /* ignore */ }
@@ -42,27 +47,24 @@ function bindAppEvents() {
     document.getElementById('input-password').value = '';
   });
 
+  bindChatInput((text) => {
+    sendMessage(text);
+  });
 
-  const input = document.getElementById('msg-input');
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      chat.sendMessage(input.value);
+  bindLoadMore(async () => {
+    if (store.activeConversation) {
+      await loadMessages(store.activeConversation.user_id, true);
     }
   });
 
-
-  input.addEventListener('input', () => {
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 100) + 'px';
-  });
-
-  document.getElementById('send-btn').addEventListener('click', () => {
-    chat.sendMessage(input.value);
+  bindBackButton(() => {
+    document.getElementById('chat-panel').classList.add('hidden-mobile');
+    document.getElementById('sidebar').classList.remove('hidden-mobile-sidebar');
+    store.activeConversation = null;
   });
 }
 
 
 
 showView('auth');
-initAuth(onLoginSuccess);
+initAuthUI(onLoginSuccess);
