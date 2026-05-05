@@ -7,7 +7,7 @@ import * as api from './services/api.js';
 import { connectWS } from './services/websocket.js';
 import { loadConversations, initSearch, updatePresenceDot } from './features/chat/conversations.js';
 import { bindBackButton, bindChatInput, bindLoadMore } from './features/chat/chat.ui.js';
-import { loadMessages, receiveMessage, sendMessage } from './features/chat/chat.js';
+import { loadMessages, receiveMessage, resetMessageState, sendMessage } from './features/chat/chat.js';
 
 console.log('App initialized');
 let appEventsBound = false;
@@ -42,6 +42,7 @@ function bindAppEvents() {
     try { await api.logout(); } catch { /* ignore */ }
     if (store.ws) store.ws.close(1000);
     store.clear();
+    resetMessageState()
     showView('auth');
     document.getElementById('input-username').value = '';
     document.getElementById('input-password').value = '';
